@@ -10,6 +10,8 @@ import { check, int, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
   N6 - Tiếng Nhật;
   N7 - Tiếng Hàn.
 */
+// prettier-ignore
+const ForeignLanguageCodes = ["N1", "N2", "N3", "N4", "N5", "N6", "N7"] as const;
 
 export const studentsTable = sqliteTable(
   "hocsinh_table",
@@ -17,7 +19,7 @@ export const studentsTable = sqliteTable(
     id: int("id").primaryKey({ autoIncrement: true }),
     candidateNumber: text("sbd").notNull().unique(),
     foreignLanguage: text("ma_ngoai_ngu", {
-      enum: ["N1", "N2", "N3", "N4", "N5", "N6", "N7"],
+      enum: ForeignLanguageCodes,
     }),
     createdAt: text("created_at")
       .notNull()

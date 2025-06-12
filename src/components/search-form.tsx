@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { searchStudentByRegistration } from "@/lib/actions";
 import { StudentWithScores } from "@/lib/typings";
+import { getLanguageNameFromCode } from "@/lib/utils";
 
 const CandidateNumberSchema = z
   .string()
@@ -55,13 +56,13 @@ export function SearchForm() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>User Registration</CardTitle>
+          <CardTitle className="text-2xl">User Registration</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="registration" className="mb-2.5">
-                Registration Number
+                Registration Number:
               </Label>
               <div className="flex space-x-2 mt-2">
                 <Input
@@ -70,7 +71,7 @@ export function SearchForm() {
                   placeholder="Enter registration number"
                   value={registrationNumber}
                   onChange={(e) => setRegistrationNumber(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 max-w-prose"
                 />
                 <Button
                   type="submit"
@@ -93,13 +94,24 @@ export function SearchForm() {
       {student && (
         <Card className={isLoading ? "opacity-50 animate-pulse" : ""}>
           <CardHeader>
-            <CardTitle>Detailed Scores</CardTitle>
+            <CardTitle className="text-2xl">Detailed Scores</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <Label className="font-semibold">Registration Number:</Label>
-                <p className="text-lg">{student.candidateNumber}</p>
+              <div className="space-y-1">
+                <div className="flex items-center gap-4">
+                  <Label>Registration Number:</Label>
+                  <p className="text-lg">{student.candidateNumber}</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <Label>Foreign Language:</Label>
+                  <p className="text-lg">
+                    {student.foreignLanguage
+                      ? getLanguageNameFromCode(student.foreignLanguage) +
+                        ` (${student.foreignLanguage})`
+                      : "N/A"}
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
                 <div className="space-y-2">

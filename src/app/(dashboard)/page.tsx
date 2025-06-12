@@ -2,7 +2,10 @@ import { Award, BookOpen, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { PageDescription } from "@/components/typography/page-description";
+import { PageHeading } from "@/components/typography/page-heading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { getStudentsCountStats, getSubjectStatistics } from "@/lib/actions";
 import { formatNumberWithCommas } from "@/lib/utils";
 
@@ -10,10 +13,8 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Overview of student exam performance
-        </p>
+        <PageHeading>Dashboard</PageHeading>
+        <PageDescription>Overview of student exam performance</PageDescription>
       </div>
 
       <Suspense fallback={<OverviewFallback />}>
@@ -21,7 +22,7 @@ export default function DashboardPage() {
       </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PerformanceLevel />
+        <PerformanceLevels />
         <QuickActions />
       </div>
     </div>
@@ -29,8 +30,11 @@ export default function DashboardPage() {
 }
 
 async function Overview() {
-  const { totalStudents, totalSubjects } = await getStudentsCountStats();
-  const stats = await getSubjectStatistics();
+  const [studentsStats, stats] = await Promise.all([
+    getStudentsCountStats(),
+    getSubjectStatistics(),
+  ]);
+  const { totalStudents, totalSubjects } = studentsStats;
 
   // Safe calculation for average performance
   const avgPerformance =
@@ -58,7 +62,7 @@ async function Overview() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-          <Users className="h-4 w-4 text-muted-foreground" />
+          <Users className="size-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
@@ -114,7 +118,7 @@ async function Overview() {
   );
 }
 
-function PerformanceLevel() {
+function PerformanceLevels() {
   return (
     <Card>
       <CardHeader>
@@ -122,35 +126,35 @@ function PerformanceLevel() {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
             <div>
               <div className="font-medium text-green-800">Level 1</div>
-              <div className="text-sm text-green-600">Scores ≥ 8.0 points</div>
+              <div className="text-sm text-green-700">Scores ≥ 8.0 points</div>
             </div>
             <div className="text-xl font-bold text-green-700">Excellent</div>
           </div>
-          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
             <div>
               <div className="font-medium text-blue-800">Level 2</div>
-              <div className="text-sm text-blue-600">
+              <div className="text-sm text-blue-700">
                 Scores 6.0 - 7.9 points
               </div>
             </div>
             <div className="text-xl font-bold text-blue-700">Good</div>
           </div>
-          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200">
             <div>
               <div className="font-medium text-yellow-800">Level 3</div>
-              <div className="text-sm text-yellow-600">
+              <div className="text-sm text-yellow-700">
                 Scores 4.0 - 5.9 points
               </div>
             </div>
             <div className="text-xl font-bold text-yellow-700">Average</div>
           </div>
-          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+          <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
             <div>
               <div className="font-medium text-red-800">Level 4</div>
-              <div className="text-sm text-red-600">
+              <div className="text-sm text-red-700">
                 Scores {"<"} 4.0 points
               </div>
             </div>

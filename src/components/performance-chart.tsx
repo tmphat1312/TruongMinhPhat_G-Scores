@@ -3,18 +3,21 @@
 import {
   Bar,
   BarChart,
+  CartesianGrid,
+  Legend,
   ResponsiveContainer,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Legend,
 } from "recharts";
+
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+
 import type { SubjectStats } from "@/lib/typings";
+import { formatNumberWithCommas } from "@/lib/utils";
 
 interface PerformanceChartProps {
   data: SubjectStats[];
@@ -55,7 +58,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
             height={100}
             fontSize={12}
           />
-          <YAxis />
+          <YAxis tickFormatter={(value) => formatNumberWithCommas(value)} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Legend />
           <Bar

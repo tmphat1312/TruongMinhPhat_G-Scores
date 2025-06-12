@@ -6,7 +6,7 @@ import { db } from "@/db";
 import { examScoresTable, studentsTable } from "@/db/schema";
 import { SubjectStats } from "./typings";
 
-export async function getSubjectStatistics(): Promise<SubjectStats[]> {
+export async function getSubjectStatistics() {
   const statement = sql`
       SELECT
         -- Math statistics

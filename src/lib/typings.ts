@@ -1,11 +1,5 @@
 import { examScoresTable, studentsTable } from "@/db/schema";
 
-export interface PerformanceLevel {
-  level: number;
-  description: string;
-  count: number;
-}
-
 export interface SubjectStats {
   subject: string;
   level1: number;

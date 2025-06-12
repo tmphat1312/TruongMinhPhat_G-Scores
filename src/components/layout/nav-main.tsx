@@ -33,8 +33,8 @@ export function NavMain({
               asChild
               tooltip={item.title}
               className={cn(
-                "h-12 flex items-center hover:bg-black/10 rounded-lg",
-                item.url === pathname && "bg-black/20"
+                "h-12 flex items-center hover:bg-primary/70 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground",
+                item.url === pathname && "bg-primary text-primary-foreground"
               )}
             >
               <Link href={item.url} className="text-base px-4 flex gap-3.5">

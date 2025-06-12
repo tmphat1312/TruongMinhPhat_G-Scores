@@ -8,8 +8,7 @@ import { env } from "@/env";
 import { db } from ".";
 import { examScoresTable, studentsTable } from "./schema";
 
-const rawDatasetUrl = env.SEED_DATASET_URL;
-
+//#region Helpers
 const GradeSchema = z
   .string()
   .optional()
@@ -56,20 +55,25 @@ const insertExamScores = (rows: RowType[]) =>
     }))
   );
 const logProgress = (message: string) => {
+  // Clear the previous line and print the new message
   process.stdout.moveCursor?.(0, -1);
   process.stdout.clearLine?.(0);
   console.log(">>> " + message);
 };
+//#endregion
 
-console.log("\n");
-logProgress("Truncating tables...");
-
-await Promise.all([truncateStudentsTable(), truncateExamScoresTable()]);
-
-let table: RowType[] = [];
 let errorCount = 0;
 let successCount = 0;
+let table: RowType[] = [];
+
 const insertBatchSize = 10_000;
+const rawDatasetUrl = env.SEED_DATASET_URL;
+
+// Add a newline to ensure the first log starts on a new line
+console.log("\n");
+
+logProgress("Truncating tables...");
+await Promise.all([truncateStudentsTable(), truncateExamScoresTable()]);
 
 logProgress("Starting to fetch and parse CSV data...");
 needle
@@ -102,7 +106,7 @@ needle
   })
   .on("done", (err) => {
     if (err) {
-      console.log("An error has occurred");
+      console.error("An error has occurred");
     }
     logProgress(
       `Inserted ${successCount} rows successfully, encountered ${errorCount} errors.`
