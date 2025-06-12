@@ -34,6 +34,7 @@ export function SearchForm() {
     const validation = CandidateNumberSchema.safeParse(registrationNumber);
     if (!validation.success) {
       setError(validation.error.errors[0].message);
+      setStudent(null);
       return;
     }
 
@@ -41,7 +42,12 @@ export function SearchForm() {
       const result = await searchStudentByRegistration(
         registrationNumber.trim()
       );
-      setStudent(result);
+      if (!result) {
+        setError("No student found with this registration number.");
+        setStudent(null);
+      } else {
+        setStudent(result);
+      }
     });
   };
 
@@ -54,7 +60,9 @@ export function SearchForm() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="registration">Registration Number</Label>
+              <Label htmlFor="registration" className="mb-2.5">
+                Registration Number
+              </Label>
               <div className="flex space-x-2 mt-2">
                 <Input
                   id="registration"
@@ -83,40 +91,37 @@ export function SearchForm() {
       </Card>
 
       {student && (
-        <Card>
+        <Card className={isLoading ? "opacity-50 animate-pulse" : ""}>
           <CardHeader>
             <CardTitle>Detailed Scores</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="font-semibold">Registration Number:</Label>
-                  <p className="text-lg">{student.candidateNumber}</p>
-                </div>
+              <div className="flex items-center gap-4">
+                <Label className="font-semibold">Registration Number:</Label>
+                <p className="text-lg">{student.candidateNumber}</p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-6">
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg border-b pb-2">
                     Core Subjects
                   </h3>
                   <div className="space-y-1">
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Math:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.math ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Literature:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.literature ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Foreign Language:</span>
-                      <span className="font-medium">
+                    <div className="flex items-center gap-1">
+                      <span className="text-nowrap">Foreign Language:</span>
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.foreignLanguage ?? "N/A"}
                       </span>
                     </div>
@@ -128,21 +133,21 @@ export function SearchForm() {
                     Sciences
                   </h3>
                   <div className="space-y-1">
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Physics:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.physics ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Chemistry:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.chemistry ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Biology:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.biology ?? "N/A"}
                       </span>
                     </div>
@@ -154,21 +159,21 @@ export function SearchForm() {
                     Social Studies
                   </h3>
                   <div className="space-y-1">
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>History:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.history ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Geography:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.geography ?? "N/A"}
                       </span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
                       <span>Civics:</span>
-                      <span className="font-medium">
+                      <span className="font-medium w-full text-end bg-secondary/50">
                         {student.scores.civicEducation ?? "N/A"}
                       </span>
                     </div>
