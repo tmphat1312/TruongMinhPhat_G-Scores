@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/header";
-import { Sidebar } from "@/components/layout/sidebar";
+
+import { AppSidebar } from "@/components/layout/app-sidebar";
+import { SiteHeader } from "@/components/layout/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 const rubikSans = Rubik({
   variable: "--font-rubik-sans",
@@ -22,12 +24,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${rubikSans.variable} antialiased`}>
-        <div className="h-dvh grid grid-rows-[auto_1fr]">
-          <Header />
-          <div className="grid grid-cols-[auto_1fr]">
-            <Sidebar />
-            <div className="p-8">{children}</div>
-          </div>
+        <div className="[--header-height:calc(--spacing(18))]">
+          <SidebarProvider className="flex flex-col">
+            <SiteHeader />
+            <div className="flex flex-1">
+              <AppSidebar />
+              <SidebarInset>
+                <main className="p-8">{children}</main>
+              </SidebarInset>
+            </div>
+          </SidebarProvider>
         </div>
       </body>
     </html>

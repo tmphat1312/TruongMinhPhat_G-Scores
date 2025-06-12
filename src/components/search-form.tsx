@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { StudentWithScores } from "@/db/schema";
 import { searchStudentByRegistration } from "@/lib/actions";
+import { StudentWithScores } from "@/lib/typings";
 
 const CandidateNumberSchema = z
   .string()

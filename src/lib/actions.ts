@@ -1,12 +1,12 @@
 "use server";
 
+import { desc, eq, sql } from "drizzle-orm";
+
 import { db } from "@/db";
 import { examScoresTable, studentsTable } from "@/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
 import { SubjectStats } from "./typings";
 
 export async function getSubjectStatistics(): Promise<SubjectStats[]> {
-  // Get all statistics in a single query to avoid dynamic column name issues
   const statement = sql`
       SELECT
         -- Math statistics
@@ -80,7 +80,6 @@ export async function getSubjectStatistics(): Promise<SubjectStats[]> {
     { key: "geography", name: "Geography" },
     { key: "civics", name: "Civics" },
   ];
-
   const stats: SubjectStats[] = subjects.map(({ key, name }) => ({
     subject: name,
     a: row[`${key}_level1`],
@@ -152,6 +151,5 @@ export async function getTopStudentsGroupA() {
     )
     .orderBy(desc(totalScoreSQL))
     .limit(10);
-
   return result;
 }

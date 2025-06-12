@@ -103,12 +103,3 @@ export const examScoresTable = sqliteTable(
     ),
   ]
 );
-
-export type ExamScore = typeof examScoresTable.$inferSelect;
-export type Student = typeof studentsTable.$inferSelect;
-export type StudentWithScores = Pick<
-  Student,
-  "id" | "candidateNumber" | "foreignLanguage"
-> & {
-  scores: Omit<ExamScore, "createdAt" | "updatedAt" | "id" | "candidateNumber">;
-};
