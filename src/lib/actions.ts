@@ -1,9 +1,9 @@
 "use server";
 
 import { db } from "@/db";
-import { SubjectStats } from "./typings";
 import { examScoresTable, studentsTable } from "@/db/schema";
-import { sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
+import { SubjectStats } from "./typings";
 
 export async function getSubjectStatistics(): Promise<SubjectStats[]> {
   // Get all statistics in a single query to avoid dynamic column name issues
@@ -65,7 +65,7 @@ export async function getSubjectStatistics(): Promise<SubjectStats[]> {
       FROM ${examScoresTable}
     `;
   const { rows: result } = await db.run(statement);
-  console.log("Subject statistics result:", result);
+
   if (result.length === 0) return [];
 
   const row = result[0];
@@ -100,4 +100,58 @@ export async function getStudentsCountStats() {
     totalStudents: studentsCount,
     totalSubjects: subjectsCount,
   };
+}
+
+export async function searchStudentByRegistration(candidateNumber: string) {
+  const [result] = await db
+    .select({
+      id: studentsTable.id,
+      candidateNumber: studentsTable.candidateNumber,
+      foreignLanguage: studentsTable.foreignLanguage,
+      scores: {
+        math: examScoresTable.math,
+        literature: examScoresTable.literature,
+        foreignLanguage: examScoresTable.foreignLanguage,
+        physics: examScoresTable.physics,
+        chemistry: examScoresTable.chemistry,
+        biology: examScoresTable.biology,
+        history: examScoresTable.history,
+        geography: examScoresTable.geography,
+        civicEducation: examScoresTable.civicEducation,
+      },
+    })
+    .from(examScoresTable)
+    .innerJoin(
+      studentsTable,
+      eq(examScoresTable.candidateNumber, studentsTable.candidateNumber)
+    )
+    .where(eq(studentsTable.candidateNumber, candidateNumber));
+  return result || null;
+}
+
+export async function getTopStudentsGroupA() {
+  const totalScoreSQL = sql<number>`(${examScoresTable.math} + ${examScoresTable.physics} + ${examScoresTable.chemistry})`;
+  const result = await db
+    .select({
+      id: studentsTable.id,
+      candidateNumber: studentsTable.candidateNumber,
+      scores: {
+        math: examScoresTable.math,
+        physics: examScoresTable.physics,
+        chemistry: examScoresTable.chemistry,
+      },
+      totalScore: totalScoreSQL,
+    })
+    .from(examScoresTable)
+    .innerJoin(
+      studentsTable,
+      eq(examScoresTable.candidateNumber, studentsTable.candidateNumber)
+    )
+    .where(
+      sql`${examScoresTable.math} IS NOT NULL AND ${examScoresTable.physics} IS NOT NULL AND ${examScoresTable.chemistry} IS NOT NULL`
+    )
+    .orderBy(desc(totalScoreSQL))
+    .limit(10);
+
+  return result;
 }
