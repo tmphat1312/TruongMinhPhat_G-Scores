@@ -72,6 +72,7 @@ export function SearchForm() {
                   value={registrationNumber}
                   onChange={(e) => setRegistrationNumber(e.target.value)}
                   className="flex-1 max-w-prose"
+                  disabled={isLoading}
                 />
                 <Button
                   type="submit"
