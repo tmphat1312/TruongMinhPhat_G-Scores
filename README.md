@@ -3,7 +3,6 @@
 Look up high school graduation exam scores with G-Scores.
 [Live Demo](https://truong-minh-phat-g-scores.vercel.app/)
 
-Screenshot:
 ![G-Scores Dashboard](/docs/screenshots/dashboard.png)
 
 From **Trương Minh Phát - 0933756220**
