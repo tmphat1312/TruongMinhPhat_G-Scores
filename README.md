@@ -65,14 +65,6 @@ Run specified commands as instructions below.
 
 6. Start local development server
 
-   (6.1) If you just want to preview the application. Run preview production build (Optimized and presents as live product)
-
-   ```bash
-   npm run preview
-   ```
-
-   (6.2) If you want to experience the development process. Start development server with host reloading (Not optimized)
-
    ```bash
    npm run dev
    ```
