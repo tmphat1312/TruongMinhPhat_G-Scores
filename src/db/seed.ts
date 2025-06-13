@@ -1,13 +1,11 @@
-import "dotenv/config";
-
 import csvParser from "csv-parser";
+import { sql } from "drizzle-orm";
 import needle from "needle";
 import { z } from "zod";
 
+import { examScoresTable, studentsTable } from "./schema";
 import { env } from "@/env";
 import { db } from ".";
-import { examScoresTable, studentsTable } from "./schema";
-import { sql } from "drizzle-orm";
 
 //#region Helpers
 const GradeSchema = z
@@ -31,19 +29,23 @@ const RowSchema = z.object({
     .transform((val) => (val ? val : null)),
 });
 type RowType = z.infer<typeof RowSchema>;
-const truncateStudentsTable = async () =>
-  await db.run(sql`DELETE FROM ${studentsTable}`);
-const truncateExamScoresTable = async () =>
-  await db.run(sql`DELETE FROM ${examScoresTable}`);
-const insertStudents = async (rows: RowType[]) =>
-  await db.insert(studentsTable).values(
+
+function truncateStudentsTable() {
+  return db.run(sql`DELETE FROM ${studentsTable}`);
+}
+function truncateExamScoresTable() {
+  return db.run(sql`DELETE FROM ${examScoresTable}`);
+}
+function insertStudents(rows: RowType[]) {
+  return db.insert(studentsTable).values(
     rows.map((row) => ({
       candidateNumber: row.sbd,
       foreignLanguage: row.ma_ngoai_ngu,
     }))
   );
-const insertExamScores = async (rows: RowType[]) =>
-  await db.insert(examScoresTable).values(
+}
+function insertExamScores(rows: RowType[]) {
+  return db.insert(examScoresTable).values(
     rows.map((row) => ({
       candidateNumber: row.sbd,
       math: row.toan,
@@ -57,32 +59,92 @@ const insertExamScores = async (rows: RowType[]) =>
       civicEducation: row.gdcd,
     }))
   );
-const logProgress = (message: string) => {
+}
+
+async function seedTables(table: RowType[]) {
+  const insertTable = [...table];
+  try {
+    await insertStudents(insertTable);
+    await insertExamScores(insertTable);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  } catch (err) {
+    handleInsertError(err as Error);
+  }
+}
+
+function logProgress(message: string) {
   // Clear the previous line and print the new message
   process.stdout.moveCursor?.(0, -1);
   process.stdout.clearLine?.(0);
   console.log(">>> " + message);
-};
-const handleInsertError = (err: Error) => {
+}
+
+function handleInsertError(err: Error) {
   const { cause } = err;
   console.error("Error inserting data:", cause);
   console.log(`
     Helpful tips:
-      - If you see "SQLITE_ERROR: too many SQL variables", it means the batch size is too large.
+      - If you see "_ERROR: too many SQL variables", it means the batch size is too large.
       => Batch size too large, reducing to <= 1_000 rows per batch.
     `);
   process.exit(1);
-};
+}
 //#endregion
 
-let errorCount = 0;
-let successCount = 0;
-let table: RowType[] = [];
+// #region Main functions
+async function* parseCsvStream() {
+  const insertBatchSize = 1_000;
+  const rawDatasetUrl =
+    env.SEED_DATASET_URL ??
+    "https://raw.githubusercontent.com/GoldenOwlAsia/webdev-intern-assignment-3/refs/heads/main/dataset/diem_thi_thpt_2024.csv";
 
-const insertBatchSize = 1_000;
-const rawDatasetUrl =
-  env.SEED_DATASET_URL ??
-  "https://raw.githubusercontent.com/GoldenOwlAsia/webdev-intern-assignment-3/refs/heads/main/dataset/diem_thi_thpt_2024.csv";
+  let errorCount = 0;
+  let table: RowType[] = [];
+  const stream = needle.get(rawDatasetUrl).pipe(csvParser());
+
+  for await (const data of stream) {
+    const parsedData = RowSchema.safeParse(data);
+
+    if (!parsedData.success) {
+      console.error("Invalid row data:", data, parsedData.error);
+      errorCount++;
+      continue;
+    }
+
+    table.push(parsedData.data as RowType);
+
+    if (table.length >= insertBatchSize) {
+      yield [table, errorCount] as const;
+      table = [];
+      errorCount = 0;
+    }
+  }
+
+  if (table.length > 0) {
+    yield [table, errorCount] as const;
+    table = [];
+    errorCount = 0;
+  }
+}
+
+async function seedFromGenerator() {
+  let successCount = 0;
+  let errorCount = 0;
+
+  for await (const [batch, parseErrorCount] of parseCsvStream()) {
+    await seedTables(batch);
+    successCount += batch.length;
+    errorCount += parseErrorCount;
+    logProgress(
+      `Processed ${successCount.toLocaleString()} rows, encountered ${errorCount.toLocaleString()} errors.`
+    );
+  }
+
+  logProgress(
+    `Complete: Inserted ${successCount.toLocaleString()} rows successfully, encountered ${errorCount.toLocaleString()} errors.`
+  );
+}
+// #endregion
 
 // Add a newline to ensure the first log starts on a new line
 console.log("\nIt will take a while to seed the database, please wait...\n");
@@ -90,49 +152,8 @@ console.log("\nIt will take a while to seed the database, please wait...\n");
 logProgress("Truncating tables...");
 await truncateExamScoresTable();
 await truncateStudentsTable();
-
 logProgress("Starting to fetch and parse CSV data...");
-needle
-  .get(rawDatasetUrl)
-  .pipe(csvParser())
-  .on("data", async (data) => {
-    const parsedData = RowSchema.safeParse(data);
-    if (!parsedData.success) {
-      console.error("Invalid row data:", data, parsedData.error);
-      errorCount++;
-      return;
-    }
-
-    const row = parsedData.data;
-    table.push(row);
-
-    if (table.length % insertBatchSize === 0) {
-      const insertTable = [...table];
-      try {
-        await insertStudents(insertTable);
-        await insertExamScores(insertTable);
-      } catch (err) {
-        handleInsertError(err as Error);
-      }
-      successCount += insertTable.length;
-      logProgress(
-        `Inserted ${successCount.toLocaleString()} rows, encountered ${errorCount.toLocaleString()} errors.`
-      );
-      table = []; // Clear the table after insertion
-    }
-  })
-  .on("error", ({ cause }) => {
-    console.error("An error occurred while processing the CSV:", cause);
-    process.exit(1);
-  })
-  .on("done", (err) => {
-    if (err) {
-      console.error("An error has occurred");
-    }
-    logProgress(
-      `Complete: Inserted ${successCount.toLocaleString()} rows successfully, encountered ${errorCount.toLocaleString()} errors.`
-    );
-    console.log(
-      "It may take a few seconds to finish inserting the last batch, please wait..."
-    );
-  });
+seedFromGenerator().catch((err) => {
+  console.error("An error occurred while processing the CSV:", err);
+  process.exit(1);
+});

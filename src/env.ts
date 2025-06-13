@@ -2,7 +2,7 @@ import "dotenv/config";
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
-const isProduction = process.env.NODE_ENV === "production";
+export const isProduction = process.env.NODE_ENV === "production";
 
 export const env = createEnv({
   server: {
@@ -25,14 +25,7 @@ export const env = createEnv({
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
-            "TURSO_CONNECTION_URL  & TURSO_AUTH_TOKEN is required in production",
-        });
-        return z.NEVER;
-      }
-      if (!isProduction && !env.DB_FILE_NAME) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "DB_FILE_NAME is required in non-production environments",
+            "TURSO_CONNECTION_URL & TURSO_AUTH_TOKEN is required in production",
         });
         return z.NEVER;
       }
